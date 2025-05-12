@@ -14,13 +14,18 @@ public class Enemy{
     public int m_posX = 0;
     public int m_posY = 0;
     public int mAnimState = ENEMY_ALIVE_STATE;
+    private int speed = 2;
     private Image enemyExplorePic[] = new Image[4];
     public int mPlayID = 0;
 
     public Enemy(){
         for(int i=0;i<enemyExplorePic.length;i++){
-            enemyExplorePic[i] = Toolkit.getDefaultToolkit().getImage("D:/Game/bomb_enemy_"+i+".png");
+            enemyExplorePic[i] = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/enemy_alive.png");//圖片
         }
+    }
+
+    public void setSpeed(int s) {
+        this.speed = s;
     }
 
     public void init(int x,int y){
@@ -37,11 +42,11 @@ public class Enemy{
             return;
         }
 
-        Image pic = Toolkit.getDefaultToolkit().getImage("C:/image/enemy_alive.png");
+        Image pic = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/enemy_alive.png");//圖片
         g.drawImage(pic, m_posX, m_posY, 30,30,(ImageObserver)i);
     }
 
     public void UpdateEnemy(){
-        m_posY += ENEMY_STEP_Y;
+        m_posY += speed;
     }
 }

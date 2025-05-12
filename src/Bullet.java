@@ -17,7 +17,7 @@ public class Bullet {
         pic = new Image[1];
 //        System.out.println(pic.length);
         for(int i=0;i<pic.length;i++){
-            pic[i] = Toolkit.getDefaultToolkit().getImage("C:/image/bullet_"+i+".png");
+            pic[i] = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/bullet_0.png");
         }
     }
     public void init(int x,int y){

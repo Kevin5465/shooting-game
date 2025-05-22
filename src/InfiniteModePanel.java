@@ -53,8 +53,8 @@ public class InfiniteModePanel extends JPanel implements Runnable, KeyListener {
     }
 
     public void init() {
-        mBitMenuBG0 = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/bg0.png");
-        mBitMenuBG1 = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/bg0.png");
+        mBitMenuBG0 = Toolkit.getDefaultToolkit().getImage("image/bg0.png");
+        mBitMenuBG1 = Toolkit.getDefaultToolkit().getImage("image/bg0.png");
 
         mBitposY0 = 0;
         mBitposY1 = -mScreenHeight;
@@ -62,7 +62,7 @@ public class InfiniteModePanel extends JPanel implements Runnable, KeyListener {
         mAirPosY = 400;
 
         myPlanePic = new Image[1];
-        myPlanePic[0] = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/player.png");
+        myPlanePic[0] = Toolkit.getDefaultToolkit().getImage("image/player.png");
 
         for (int i = 0; i < ENEMY_POOL_COUNT; i++) {
             Enemy tempEnemy = new Enemy();

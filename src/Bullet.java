@@ -13,12 +13,11 @@ public class Bullet {
     boolean mFacus = true;
     private Image pic[] = null;
     private int mPlayID = 0;
-    public Bullet(){
-        pic = new Image[1];
-//        System.out.println(pic.length);
+    public Bullet() {
+    	pic = new Image[1];
         for(int i=0;i<pic.length;i++){
-            pic[i] = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/bullet_0.png");
-        }
+            pic[i] = Toolkit.getDefaultToolkit().getImage("image/bullet_0.png");
+        } 
     }
     public void init(int x,int y){
         m_posX = x;

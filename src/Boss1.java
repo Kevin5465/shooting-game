@@ -30,7 +30,8 @@ public class Boss1 {
     private long lastPatternChangeTime = System.currentTimeMillis();
 
     public Boss1() {
-        img = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/boss1.png");
+    	ImageIcon icon = new ImageIcon("image/boss1.png");
+        img = icon.getImage(); 
     }
 
     public void update() {

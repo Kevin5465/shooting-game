@@ -36,7 +36,8 @@ public class Boss2 {
     private long lastSpecialTime = System.currentTimeMillis();
 
     public Boss2() {
-        img = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/boss2.png");
+    	ImageIcon icon = new ImageIcon("image/boss2.png");
+        img = icon.getImage(); 
     }
 
     public void update() {

@@ -14,8 +14,8 @@ public class EnemyBullet {
     public EnemyBullet(int x, int y) {
         this.x = x;
         this.y = y;
-        bulletImages[0] = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/bullet_0.png");
-        bulletImages[1] = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/bullet_0.png");
+        bulletImages[0] = Toolkit.getDefaultToolkit().getImage("image/bullet_0.png");
+	bulletImages[1] = Toolkit.getDefaultToolkit().getImage("image/bullet_0.png");
     }
 
     public void update() {

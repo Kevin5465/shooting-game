@@ -103,9 +103,9 @@ public class StageModePanel extends JPanel implements Runnable, KeyListener, Mou
     }
 
     private void init() {
-        bg1 = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/bg0.png");
-        bg2 = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/bg0.png");
-        player = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/player.png");
+        bg1 = Toolkit.getDefaultToolkit().getImage("image/bg0.png");
+        bg2 = Toolkit.getDefaultToolkit().getImage("image/bg0.png");
+        player = Toolkit.getDefaultToolkit().getImage("image/player.png");
     }
 
     @Override

@@ -20,7 +20,7 @@ public class Enemy{
 
     public Enemy(){
         for(int i=0;i<enemyExplorePic.length;i++){
-            enemyExplorePic[i] = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/enemy_alive.png");//圖片
+            enemyExplorePic[i] = Toolkit.getDefaultToolkit().getImage("image/enemy_alive.png");;
         }
     }
 
@@ -42,7 +42,7 @@ public class Enemy{
             return;
         }
 
-        Image pic = Toolkit.getDefaultToolkit().getImage("C:/Users/User/Desktop/shooting-game/image/enemy_alive.png");//圖片
+        Image pic = Toolkit.getDefaultToolkit().getImage("image/enemy_alive.png");
         g.drawImage(pic, m_posX, m_posY, 30,30,(ImageObserver)i);
     }
 

@@ -16,6 +16,8 @@ public class InfiniteModePanel extends JPanel implements Runnable, KeyListener {
     private Image mBitMenuBG1 = null;
     private int mBitposY0 = 0;
     private int mBitposY1 = 0;
+    private int score = 0; // 記分板
+
 
     private long createEnemyTime = System.currentTimeMillis();
     final static int PLAN_STEP = 10;
@@ -103,6 +105,9 @@ public class InfiniteModePanel extends JPanel implements Runnable, KeyListener {
         for (Enemy e : mEnemy) {
             e.DrawEnemy(g, this);
         }
+        g.setColor(Color.WHITE); // 設定文字顏色
+        g.drawString("Score: " + score, 10, 20); // 在畫面左上角顯示分數
+
     }
 
     public void updateBg() {
@@ -154,6 +159,7 @@ public class InfiniteModePanel extends JPanel implements Runnable, KeyListener {
                     b.m_posY >= e.m_posY && b.m_posY <= e.m_posY + 30) {
                     mEnemy.remove(j--);  
                     b.mFacus = false;
+                    score++; // 更新分數
                     break;
             	}
             }

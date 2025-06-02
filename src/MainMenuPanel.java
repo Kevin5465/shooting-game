@@ -15,7 +15,7 @@ public class MainMenuPanel extends JPanel {
     private JButton settingsButton;
     private JButton exitButton;
     private JButton upgradeButton;
-    private String playerName = "kvn566"; // 玩家名稱
+    private String playerName = "player"; // 玩家名稱
     private int playerLevel = 1; // 玩家等級
     private int currentExp = 0; // 當前經驗值
     private int maxExp = 100; // 升級所需經驗值

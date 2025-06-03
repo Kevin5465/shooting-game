@@ -657,7 +657,7 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                     }
                     new Thread(() -> {
                         try {
-			    File soundFile = new File("resource/explosion.wav");
+			    File soundFile = new File("resources/explosion.wav");
 			    AudioInputStream ais = AudioSystem.getAudioInputStream(soundFile);
                             Clip c = AudioSystem.getClip();
                             c.open(ais);              

@@ -20,8 +20,8 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
         
     // 玩家屬性
     private int playerX, playerY;
-    private static final int PLAYER_WIDTH = 50, PLAYER_HEIGHT = 30;
-    private double playerMaxHealth = 200, playerHealth = playerMaxHealth;
+    private static final int PLAYER_WIDTH = 40, PLAYER_HEIGHT = 50;
+    private double playerMaxHealth = 400, playerHealth = playerMaxHealth;
     private double playerAttack = 26, playerDefense = 10, playerAttackSpeed = 1.0;
     private long lastFireTime = 0, lastFireballTime = 0;
     private final int BASE_FIREBALL_COOLDOWN = 1000;
@@ -46,7 +46,7 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
         int dirX, dirY;
         
         public Enemy(int x, int y, double hp, double atk, double def) {
-            rect = new Rectangle(x, y, 40, 30);
+            rect = new Rectangle(x, y, 30, 40);
             health = hp; 
             attack = atk; 
             defense = def;
@@ -186,7 +186,7 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
         playerX = PANEL_WIDTH / 2 - PLAYER_WIDTH / 2;
         playerY = PANEL_HEIGHT - PLAYER_HEIGHT - 10;
         // 載入圖片
-        playerImg    = new ImageIcon("resources/player2.png").getImage();
+        playerImg    = new ImageIcon("resources/ufo.png").getImage();
         enemyImg     = new ImageIcon("resources/enemy.png").getImage();
         bgImg        = new ImageIcon("resources/background.png").getImage();
         laserImg     = new ImageIcon("resources/laser.png").getImage();

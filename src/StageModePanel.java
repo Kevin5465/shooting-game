@@ -595,12 +595,15 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
             // 遊戲通關
             timer.stop();
             JOptionPane.showMessageDialog(this, "恭喜！您已經擊敗了所有Boss！\n遊戲通關！", "恭喜過關", JOptionPane.INFORMATION_MESSAGE);
-            if (mainMenuPanel != null) {
-                mainMenuPanel.addCoins(100 + (playerLevel * 10));
-                mainMenuPanel.addExp(80 + (int)(playerLevel * 5.5)); // 打 Boss 加 150 EXP
-            }
+            PlayerData.addCoins(100 + (PlayerData.level * 2));
+            PlayerData.addExp(80 + (int)(PlayerData.level * 4.5));  
+            
             if(mainFrame != null) {
                 mainFrame.showScreen("Menu");
+                if (mainFrame.getContentPane() instanceof MainMenuPanel) 
+                {
+                    ((MainMenuPanel) mainFrame.getContentPane()).update();
+                }
             }
             
         }

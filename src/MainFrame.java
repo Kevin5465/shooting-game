@@ -4,6 +4,8 @@ import java.awt.Dimension;
 public class MainFrame extends JFrame {
     private static MainFrame instance;
     private MainMenuPanel mainMenuPanel;
+    private UpgradePanel upgradePanel;
+
     public MainFrame() {
         instance = this;
         setTitle("Shooting Game");
@@ -14,6 +16,7 @@ public class MainFrame extends JFrame {
 	    pack();
         setLocationRelativeTo(null);
         setVisible(true);
+        upgradePanel = new UpgradePanel(this);
     }
 
     public static MainFrame getInstance() {
@@ -34,8 +37,15 @@ public class MainFrame extends JFrame {
                 setContentPane(InfinitePanel);
                 InfinitePanel.requestFocusInWindow(); // 确保面板获得焦点
                 break;
-            
+            case "Upgrade":
+                setContentPane(upgradePanel);
+                upgradePanel.requestFocusInWindow();
+            break;
+
             case "Menu":
+            /*case "Upgrade":
+                setContentPane(new UpgradePanel(this));
+                break;*/
             default:
                 setContentPane(mainMenuPanel);
                 break;

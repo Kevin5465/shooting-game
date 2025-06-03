@@ -16,11 +16,7 @@ public class MainMenuPanel extends JPanel {
     private JButton exitButton;
     private JButton upgradeButton;
     private String playerName = "player"; // 玩家名稱
-    private int playerLevel = 1; // 玩家等級
-    private int currentExp = 0; // 當前經驗值
-    private int maxExp = 100; // 升級所需經驗值
     private Image playerAvatar; // 玩家頭像
-    private int coins; // 金幣數量，可依情況變動
     private BufferedImage coinIcon; // 金幣圖像
 
 
@@ -74,31 +70,26 @@ public class MainMenuPanel extends JPanel {
     }
 
 
-    // 計算下一等級需要的經驗值
-    private int getExpForNextLevel(int level) {
-        return (int)(100 * Math.pow(level, 1.2));  // 例如：lv1 = 100, lv10 ≈ 630
+
+    
+    public void update() {
+        repaint();
     }
 
-    public void addCoins(int amount) {
-    coins += amount;
-    repaint(); // 更新畫面
-    }
-    public void addExp(int amount) {
-    currentExp += amount;
-    repaint(); // 更新畫面
-}
-    
+
     private void drawPlayerInfo(Graphics g) {
     int boxWidth = 120; // 資料框寬度
     int boxHeight = 50; // 資料框高度
     int x = 0; // 資料框左上角 X 坐標
     int y = 0; // 資料框左上角 Y 坐標
 
-    try {
-    playerAvatar = ImageIO.read(new File("image/player2.png"));
-} catch (IOException e) {
-    e.printStackTrace();
-}
+    try
+    {
+        playerAvatar = ImageIO.read(new File("image/player2.png"));
+    } catch (IOException e) 
+    {
+        e.printStackTrace();
+    }
 
     
     // 資料框背景
@@ -122,7 +113,7 @@ public class MainMenuPanel extends JPanel {
 
     // 玩家等級
     g.setFont(new Font("Arial", Font.PLAIN, 12));
-    g.drawString("lv. " + playerLevel, x + 60, y + 30);
+    g.drawString("Lv. " + PlayerData.level, x + 60, y + 30);
 
     // 經驗值進度條
     int barWidth = 60; // 進度條寬度
@@ -136,20 +127,14 @@ public class MainMenuPanel extends JPanel {
     g.fillRect(barX, barY, barWidth, barHeight);
 
     // 經驗值條進度
-    int currentBarWidth = (int) ((double) currentExp / maxExp * barWidth);
+    int currentBarWidth = (int) ((double) PlayerData.currentExp / PlayerData.maxExp * barWidth);
     g.setColor(Color.BLUE);
     g.fillRect(barX, barY, currentBarWidth, barHeight);
 
     // 經驗值文字
-    while (currentExp >= maxExp) {
-    currentExp -= maxExp;
-    playerLevel++;
-    maxExp = getExpForNextLevel(playerLevel); // 使用曲線函數
-    repaint(); // 更新畫面
-    }
     g.setColor(Color.WHITE);
     g.setFont(new Font("Arial", Font.PLAIN, 10));
-    g.drawString(currentExp + " / " + maxExp, barX + 5, barY + 9);
+    g.drawString(PlayerData.currentExp + " / " + PlayerData.maxExp, barX + 5, barY + 9);
 
 
     int coinBoxX = x + boxWidth +50; // 緊接在資料框右邊
@@ -176,7 +161,7 @@ public class MainMenuPanel extends JPanel {
     // 金幣數字
     g.setColor(Color.WHITE);
     g.setFont(new Font("Arial", Font.PLAIN, 11));
-    String coinText = " " + coins;
+    String coinText = " " + PlayerData.coins;
     FontMetrics fm = g.getFontMetrics();
     int textWidth = fm.stringWidth(coinText);
     int textHeight = fm.getAscent(); // 文字高度的推薦參考
@@ -247,7 +232,8 @@ public class MainMenuPanel extends JPanel {
     private void setupEventListeners() {
         infiniteModeButton.addActionListener(e -> parentFrame.showScreen("Infinite"));
         stageModeButton.addActionListener(e -> parentFrame.showScreen("Stage"));
-        
+        upgradeButton.addActionListener(e -> parentFrame.showScreen("Upgrade"));
+
         settingsButton.addActionListener(e -> {
             JOptionPane.showMessageDialog(parentFrame, "設置功能尚未實現");
         });

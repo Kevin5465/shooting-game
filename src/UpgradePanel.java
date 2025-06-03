@@ -98,10 +98,10 @@ public class UpgradePanel extends JPanel {
         g.drawString("升級介面", 140, 100);
 
         g.setFont(new Font("Dialog", Font.PLAIN, 14));
-        g.drawString("攻擊等級: Lv. " + PlayerData.atkLevel, 100, 180);
-        g.drawString("攻速等級: Lv. " + PlayerData.atkspeedLevel, 100, 280);
-        g.drawString("防禦等級: Lv. " + PlayerData.defenseLevel, 100, 380);
-        g.drawString("血量等級: Lv. " + PlayerData.hpLevel, 100, 480);
+        g.drawString("攻擊等級: Lv. " + PlayerData.atkLevel+"         atk: "+PlayerData.getAttack(), 100, 180);
+        g.drawString("攻速等級: Lv. " + PlayerData.atkspeedLevel+"         spd: "+PlayerData.getAttackSpeed(), 100, 280);
+        g.drawString("防禦等級: Lv. " + PlayerData.defenseLevel+"         dfn: "+PlayerData.getDefense(), 100, 380);
+        g.drawString("血量等級: Lv. " + PlayerData.hpLevel+"         hp: "+PlayerData.getMaxHP(), 100, 480);
 
 
         // 顯示金幣

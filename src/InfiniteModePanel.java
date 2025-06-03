@@ -16,12 +16,12 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
     private Timer timer;
     private final int PANEL_WIDTH = 400, PANEL_HEIGHT = 800; // 修改尺寸以匹配MainFrame
     private MainFrame mainFrame;
-    
+    private UpgradePanel upgradePanel;
     // 玩家屬性
     private int playerX, playerY;
     private static final int PLAYER_WIDTH = 50, PLAYER_HEIGHT = 30;
-    private double playerMaxHealth = 200, playerHealth = playerMaxHealth;
-    private double playerAttack = 26, playerDefense = 10, playerAttackSpeed = 1.0;
+    private double playerMaxHealth = PlayerData.getMaxHP(), playerHealth = playerMaxHealth;
+    private double playerAttack =PlayerData.getAttack(), playerDefense = PlayerData.getDefense(), playerAttackSpeed = PlayerData.getAttackSpeed();
     private long lastFireTime = 0, lastFireballTime = 0;
     private final int BASE_FIREBALL_COOLDOWN = 1000; // ms
     private boolean left, right, up, down, space, fireballKey;

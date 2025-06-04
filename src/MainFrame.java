@@ -32,8 +32,7 @@ public class MainFrame extends JFrame {
                 stagePanel.requestFocusInWindow(); // 确保面板获得焦点
                 break;
             case "Infinite":
-                InfiniteModePanel InfinitePanel = new InfiniteModePanel();
-                InfinitePanel.setMainFrame(this); // 设置主框架引用
+                InfiniteModePanel InfinitePanel = new InfiniteModePanel(mainMenuPanel, this);
                 setContentPane(InfinitePanel);
                 InfinitePanel.requestFocusInWindow(); // 确保面板获得焦点
                 break;

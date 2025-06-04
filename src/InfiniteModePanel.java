@@ -1242,7 +1242,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                     if (playerHealth <= 0) {
                         timer.stop();
                         JOptionPane.showMessageDialog(
-                                StageModePanel.this,
+                                InfiniteModePanel.this,
                                 "Game Over",
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
@@ -1317,7 +1317,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                         if (playerHealth <= 0) {
                             timer.stop();
                             JOptionPane.showMessageDialog(
-                                    StageModePanel.this,
+                                    InfiniteModePanel.this,
                                     "Game Over",
                                     "結束",
                                     JOptionPane.PLAIN_MESSAGE
@@ -1340,7 +1340,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                             if (playerHealth <= 0) {
                                 timer.stop();
                                 JOptionPane.showMessageDialog(
-                                        StageModePanel.this,
+                                        InfiniteModePanel.this,
                                         "Game Over",
                                         "結束",
                                         JOptionPane.PLAIN_MESSAGE

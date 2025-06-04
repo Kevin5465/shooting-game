@@ -8,7 +8,7 @@ import java.io.Serializable;
 import javax.swing.ImageIcon;
 
 public class PlayerData {
-    public static int coins = 0;
+    public static int coins = 100;
     public static int level = 1;
     public static int currentExp = 0;
     public static int maxExp = 100;
@@ -47,7 +47,7 @@ public class PlayerData {
         return 1 + (atkspeedLevel - 1);
     }
     public static int getDefense() {
-    return 5 + defenseLevel * 1; // 每升一級加3防禦
+    return 9 + defenseLevel * 1; // 每升一級加3防禦
     }
     public static int getMaxHP() {
         return 100 + hpLevel * 20; // 每升一級加20HP

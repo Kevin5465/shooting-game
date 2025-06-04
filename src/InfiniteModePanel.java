@@ -20,8 +20,8 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
     // 玩家屬性
     private int playerX, playerY;
     private static final int PLAYER_WIDTH = 40, PLAYER_HEIGHT = 50;
-    private double playerMaxHealth = 400, playerHealth = playerMaxHealth;
-    private double playerAttack = 26, playerDefense = 10, playerAttackSpeed = 1.0;
+    private double playerMaxHealth = PlayerData.getMaxHP(), playerHealth = playerMaxHealth;
+    private double playerAttack = PlayerData.getAttack(), playerDefense = PlayerData.getDefense(), playerAttackSpeed = PlayerData.getAttackSpeed();
     private long lastFireTime = 0, lastFireballTime = 0;
     private final int BASE_FIREBALL_COOLDOWN = 1000;
     private boolean left, right, up, down, space, fireballKey;

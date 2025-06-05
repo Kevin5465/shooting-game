@@ -27,7 +27,103 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
     private boolean left, right, up, down, space, fireballKey;
     private long pauseStartTime = 0;
     private long pausedRemainingCd = 0;
+    private JButton pauseButton;
+    private JDialog pauseDialog;
+    private Timer gameTimer;
+    private Clip bgmClip;
+    private boolean paused = false;
+    private double bossHPScale = 1.0;
+    private double enemyHPScale = 1.0;
 
+    private void initPauseButton() {
+    	pauseButton = new JButton("Pause");
+    	int panelWidth = 400; // 假設你的遊戲畫面寬度是 400
+        pauseButton.setBounds(panelWidth - 90, 10, 80, 30);
+    	pauseButton.addActionListener(e -> showPauseDialog());
+    	this.setLayout(null); // 使用絕對定位，或改為合適 Layout
+    	this.add(pauseButton);
+        revalidate();
+        repaint();
+    }
+
+    private void resumeGame() {
+        paused = false;
+        left = false;
+        right = false;
+        up = false;
+        down = false;
+        space = false;
+        fireballKey = false;
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+        SwingUtilities.invokeLater(() -> InfiniteModePanel.this.requestFocusInWindow());
+
+        if (gameTimer == null || !gameTimer.isRunning()) {
+            startGameTimer();
+        }
+    }
+
+    private void showPauseDialog() {
+        paused = true;
+        if (gameTimer != null) gameTimer.stop();
+    	pauseDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Paused", true);
+    	pauseDialog.setLayout(new FlowLayout());
+    
+    	JButton resumeButton = new JButton("Resume");
+    	resumeButton.addActionListener(e -> {
+            pauseDialog.dispose();
+            resumeGame();
+    	});
+
+        JButton mainMenuButton = new JButton("Main Menu");
+        mainMenuButton.addActionListener(e -> {
+            pauseDialog.dispose();
+            PlayerData.rewardFromScore();
+            PlayerData.resetScore();
+            returnToMainMenu();
+    	});
+
+        pauseDialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                pauseDialog.dispose();
+                resumeGame();
+            }
+        });
+    	pauseDialog.add(resumeButton);
+    	pauseDialog.add(mainMenuButton);
+    	pauseDialog.setSize(200, 100);
+    	pauseDialog.setLocationRelativeTo(this);
+    	pauseDialog.setVisible(true);
+    }
+    private void stopBGM() {
+        if (bgmClip != null && bgmClip.isRunning()) {
+            bgmClip.stop();
+            bgmClip.close();
+        }
+    }
+    private void returnToMainMenu() {
+        stopBGM(); // ✅ 停止音樂
+        removeNotify(); // 停止線程
+    	SwingUtilities.invokeLater(() -> {
+            MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
+            frame.showScreen("Menu");
+    	});
+    }
+    private void startGameTimer() {
+        if (gameTimer == null) {
+            gameTimer = new Timer(15, e -> {
+                if (!paused) {
+                    updateGame();
+                    repaint();
+                }
+            });
+            gameTimer.start();
+        } else if (!gameTimer.isRunning()) {
+            gameTimer.start();
+        }
+    }
+    
     // 特殊技能等級 (每個最多3級)
     private int multiShotLevel = 0, chainAttackLevel = 0,
             fireballSkillLevel = 0, diagonalShotLevel = 0, deathChainLevel = 0;
@@ -129,7 +225,13 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
         public void update() { x += vx; y += vy; }
         public Rectangle getRect() { return new Rectangle((int)x, (int)y, W, H); }
     }
-    
+    private int getExpFromEnemy(int round, int wave) {
+        double baseExp = 50;
+        double growthFactor = 1.1;  // 每輪敵人給的經驗值提高 10%
+        double waveBonus = 1 + wave * 0.05; // 每波額外加成 5%
+        double result = baseExp * Math.pow(growthFactor, round) * waveBonus;
+        return (int) result;
+    }
     private class DamageText { 
         String text; 
         int x, y, life;
@@ -240,7 +342,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
         g.drawString(String.format("ATK:%.0f DEF:%.0f SPD:%.1f", playerAttack, playerDefense, playerAttackSpeed),
                 10, 40);
         g.drawString(String.format("LV:%d XP:%d/%d", playerLevel, playerXP, xpToNext), 10, 60);
-
+        g.drawString(String.format("Score:%d", PlayerData.getScore()), 10, 120);
         long now = System.currentTimeMillis();
 
         // ── 如果还没进入 Boss，显示“Wave: x/5” 以及本波剩余秒数 ──
@@ -371,7 +473,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                 } else {
                     timer.stop();
                     JOptionPane.showMessageDialog(this, "過關成功", "恭喜", JOptionPane.PLAIN_MESSAGE);
-                    System.exit(0);
+                    PlayerData.rewardFromScore();
+                    PlayerData.resetScore();
+                    returnToMainMenu();
                     return;
                 }
             }
@@ -518,7 +622,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                 ));
                                 if (closest.health <= 0) {
                                     enemies.remove(closest);
-                                    playerXP += 50;
+                                    playerXP += getExpFromEnemy(roundCount, waveNumber);
                                 }
                             }
                         }
@@ -526,7 +630,10 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                     // Death Chain（無上限連鎖）
                     if (e.health <= 0) {
                         enemies.remove(e);
-                        playerXP += 50;
+                        playerXP += getExpFromEnemy(roundCount, waveNumber);
+                        double multiplier = Math.pow(1.2, waveNumber - 1); // 每波乘 1.2
+                        int scoreGain = (int)(100 * multiplier);
+                        PlayerData.addScore(scoreGain);
                         if (deathChainLevel > 0) {
                             List<Enemy> snap2 = new ArrayList<>(enemies);
                             Queue<Point> q = new LinkedList<>();
@@ -598,24 +705,28 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                         ));
                     }
                     if (current.curHP <= 0) {
-                        if (currentBossIndex < bosses.length - 1) {
+                        // Boss 被擊敗
+                        roundCount++;
+                        bossActive = false;
+                        waveNumber = 1;
+                        waveStartTime = now;
+                        enemies.clear();
+
+                        // 提升小怪與Boss的難度（每一輪會更強）
+                        bossHPScale *= 1.2;      // Boss 血量變成原來的1.2倍
+                        enemyHPScale *= 1.15;    // 小怪血量成長（你可以自己定義）
+
+                        // 若還有下一隻 Boss，就切到下一個
+                         if (currentBossIndex < bosses.length - 1) {
                             currentBossIndex++;
-                            bossActive = false;
-                            waveNumber = 1;
-                            waveStartTime = now;
-                            roundCount++;
-                            enemies.clear();
                         } else {
-                            timer.stop();
-                            JOptionPane.showMessageDialog(
-                                    this,
-                                    "過關成功",
-                                    "恭喜",
-                                    JOptionPane.PLAIN_MESSAGE
-                            );
-                            System.exit(0);
-                            return;
+                        // 無限循環：重新從第一隻 Boss 開始
+                        currentBossIndex = 0;
                         }
+
+                        // 重設新 Boss 的血量（根據難度成長）
+                        Boss nextBoss = bosses[currentBossIndex];
+                        nextBoss.curHP = (int)(nextBoss.maxHP * bossHPScale); // 加上難度倍率
                     }
                     continue;
                 }
@@ -711,7 +822,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                     "恭喜",
                                     JOptionPane.PLAIN_MESSAGE
                             );
-                            System.exit(0);
+                            PlayerData.rewardFromScore();
+                            PlayerData.resetScore();
+                            returnToMainMenu();
                             return;
                         }
                     }
@@ -747,7 +860,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        PlayerData.rewardFromScore();
+                        PlayerData.resetScore();
+                        returnToMainMenu();
                     }
                 }
             }
@@ -777,7 +892,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        PlayerData.rewardFromScore();
+                        PlayerData.resetScore();
+                        returnToMainMenu();
                     }
                 }
             }
@@ -807,7 +924,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        PlayerData.rewardFromScore();
+                        PlayerData.resetScore();
+                        returnToMainMenu();
                     }
                 }
             }
@@ -832,7 +951,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        PlayerData.rewardFromScore();
+                        PlayerData.resetScore();
+                        returnToMainMenu();
                     }
                 }
             }
@@ -862,7 +983,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        PlayerData.rewardFromScore();
+                        PlayerData.resetScore();
+                        returnToMainMenu();
                     }
                 }
             }
@@ -1247,7 +1370,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        PlayerData.rewardFromScore();
+                        PlayerData.resetScore();
+                        returnToMainMenu();
                     }
                     continue;
                 }
@@ -1322,7 +1447,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                     "結束",
                                     JOptionPane.PLAIN_MESSAGE
                             );
-                            System.exit(0);
+                            PlayerData.rewardFromScore();
+                            PlayerData.resetScore();
+                            returnToMainMenu();
                         }
                     }
                 } else {
@@ -1345,7 +1472,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                         "結束",
                                         JOptionPane.PLAIN_MESSAGE
                                 );
-                                System.exit(0);
+                                PlayerData.rewardFromScore();
+                                PlayerData.resetScore();
+                                returnToMainMenu();
                             }
                         }
                     }

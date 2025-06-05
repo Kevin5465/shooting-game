@@ -8,7 +8,7 @@ import java.io.Serializable;
 import javax.swing.ImageIcon;
 
 public class PlayerData {
-    public static int coins = 100;
+    public static int coins = 0;
     public static int level = 1;
     public static int currentExp = 0;
     public static int maxExp = 100;
@@ -18,7 +18,9 @@ public class PlayerData {
     public static int defenseLevel = 1;
     public static int hpLevel = 1;
     public static int lifestealLevel = 1;
-    
+    public static int score = 0;
+    public static int highScore = 0;
+    public static double spd;
     
     
 
@@ -40,21 +42,63 @@ public class PlayerData {
         coins += amount;
     }
     public static int getAttack() {
-        return 20 + atkLevel * 6;
+        return (int) Math.round(20 * Math.pow(1.2, atkLevel));
     }
 
-    public static int getAttackSpeed() {
-        return 1 + (atkspeedLevel - 1);
+    public static double getAttackSpeed() {
+        return 1.0 * Math.pow(1.2, atkspeedLevel - 1);
     }
     public static int getDefense() {
-    return 9 + defenseLevel * 1; // 每升一級加3防禦
+    return 9 + defenseLevel * 15; // 每升一級加3防禦
     }
     public static int getMaxHP() {
-        return 100 + hpLevel * 20; // 每升一級加20HP
+        return 100 + hpLevel * 40; // 每升一級加20HP
     }
 
-    public static double getLifesteal() {
-        return lifestealLevel * 0.02; // 每升一級吸血+2%
+    public static void resetScore() {
+        if (score > highScore) {
+            highScore = score;
+        }
+        score = 0;
     }
+
+    public static void addScore(int s) {
+        score += s;
+    }
+
+    public static int getScore() {
+        return score;
+    }
+
+    public static int getHighScore() {
+        return highScore;
+    }
+    public static void rewardFromScore() {
+        int coinsGained = (int)(score * 0.03);
+        int expGained = (int)(score * 0.15);
+        coins += coinsGained;
+        resetScore();
+        addExp(expGained);
+    }
+    public static double getspd() {
+        return Math.round(getAttackSpeed() * 10) / 10.0;
+    }
+    public static int getAttackUpgradeCost() {
+    return (int) Math.round(100 * Math.pow(1.13, atkLevel - 1));
+}
+
+    public static int getSpeedUpgradeCost() {
+        return (int) Math.round(100 * Math.pow(1.13, atkspeedLevel - 1));
+    }
+
+    public static int getDefenseUpgradeCost() {
+        return (int) Math.round(100 * Math.pow(1.13, defenseLevel - 1));
+    }
+
+    public static int getHealthUpgradeCost() {
+        return (int) Math.round(100 * Math.pow(1.13, hpLevel - 1));
+    }  
+
+
 }
 

@@ -42,20 +42,22 @@ public class MainMenuPanel extends JPanel {
         int startY = 160;
         int gap = 20;
         int centerX = (400 - buttonWidth) / 2;
+       
+        stageModeButton = createButton("關卡模式", buttonWidth, buttonHeight);
+        stageModeButton.setBounds(centerX, startY, buttonWidth, buttonHeight);
+        add(stageModeButton);
 
         infiniteModeButton = createButton("無限模式", buttonWidth, buttonHeight);
-        infiniteModeButton.setBounds(centerX, startY, buttonWidth, buttonHeight);
+        infiniteModeButton.setBounds(centerX, startY + buttonHeight + gap, buttonWidth, buttonHeight);
         add(infiniteModeButton);
 
-        stageModeButton = createButton("關卡模式", buttonWidth, buttonHeight);
-        stageModeButton.setBounds(centerX, startY + buttonHeight + gap, buttonWidth, buttonHeight);
-        add(stageModeButton);
+        
 
         upgradeButton=createButton("升級", buttonWidth, buttonHeight);
         upgradeButton.setBounds(centerX, startY + (buttonHeight + gap) * 2, buttonWidth, buttonHeight);
         add(upgradeButton);
 
-        settingsButton = createButton("排行榜", buttonWidth, buttonHeight);
+        settingsButton = createButton("歷史紀錄", buttonWidth, buttonHeight);
         settingsButton.setBounds(centerX, startY + (buttonHeight + gap) * 3, buttonWidth, buttonHeight);
         add(settingsButton);
 
@@ -68,7 +70,6 @@ public class MainMenuPanel extends JPanel {
         setupEventListeners();
         
     }
-
 
 
     
@@ -105,7 +106,9 @@ public class MainMenuPanel extends JPanel {
         g.drawImage(playerAvatar, x + 10, y + 10, 30, 30, this);
     }
 
-
+    g.setColor(Color.WHITE);
+    g.setFont(new Font("Dialog", Font.PLAIN, 16));
+    
     // 玩家名稱
     g.setColor(Color.WHITE);
     g.setFont(new Font("Arial", Font.BOLD, 12));
@@ -235,7 +238,7 @@ public class MainMenuPanel extends JPanel {
         upgradeButton.addActionListener(e -> parentFrame.showScreen("Upgrade"));
 
         settingsButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(parentFrame, "設置功能尚未實現");
+            JOptionPane.showMessageDialog(parentFrame, "最高分數:"+PlayerData.getHighScore());
         });
         exitButton.addActionListener(e -> System.exit(0));
     }

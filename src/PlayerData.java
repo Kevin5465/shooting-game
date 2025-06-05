@@ -21,7 +21,7 @@ public class PlayerData {
     public static int score = 0;
     public static int highScore = 0;
     public static double spd;
-    
+    private static final int BASE_LEVEL_COIN_REWARD = 70;
     
 
     private int getExpForNextLevel(int level) {
@@ -36,6 +36,7 @@ public class PlayerData {
             currentExp -= maxExp;
             level++;
             maxExp += 20; // 升級曲線
+            coins += getLevelUpCoinReward();
         }
     }
     public static void addCoins(int amount){
@@ -98,7 +99,9 @@ public class PlayerData {
     public static int getHealthUpgradeCost() {
         return (int) Math.round(100 * Math.pow(1.13, hpLevel - 1));
     }  
-
+    public static int getLevelUpCoinReward() {
+        return (int) (BASE_LEVEL_COIN_REWARD * Math.pow(1.2, level - 1));
+    }
 
 }
 

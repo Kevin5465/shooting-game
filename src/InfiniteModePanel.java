@@ -711,6 +711,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                         waveNumber = 1;
                         waveStartTime = now;
                         enemies.clear();
+                        double bossMultiplier = Math.pow(1.7, roundCount); // roundCount 表示第幾輪 boss
+                        int bossScore = (int)(1000 * bossMultiplier);
+                        PlayerData.addScore(bossScore);
 
                         // 提升小怪與Boss的難度（每一輪會更強）
                         bossHPScale *= 1.2;      // Boss 血量變成原來的1.2倍
@@ -726,7 +729,8 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
 
                         // 重設新 Boss 的血量（根據難度成長）
                         Boss nextBoss = bosses[currentBossIndex];
-                        nextBoss.curHP = (int)(nextBoss.maxHP * bossHPScale); // 加上難度倍率
+                        nextBoss.maxHP = (int)(nextBoss.maxHP * bossHPScale);
+                        nextBoss.curHP = nextBoss.maxHP;
                     }
                     continue;
                 }

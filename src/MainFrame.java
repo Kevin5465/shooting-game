@@ -1,11 +1,12 @@
 import javax.swing.JFrame;
 import java.awt.Dimension;
+import javax.swing.JPanel;
 
 public class MainFrame extends JFrame {
     private static MainFrame instance;
     private MainMenuPanel mainMenuPanel;
     private UpgradePanel upgradePanel;
-
+    
     public MainFrame() {
         instance = this;
         setTitle("Shooting Game");
@@ -19,36 +20,25 @@ public class MainFrame extends JFrame {
         upgradePanel = new UpgradePanel(this);
     }
 
-    public static MainFrame getInstance() {
-        return instance;
-    }
-
-    // 修正：重命名方法以匹配调用
     public void showScreen(String screenName) {
+	JPanel panelToShow;
         switch (screenName) {
             case "Stage":
-                StageModePanel stagePanel = new StageModePanel(mainMenuPanel, this);
-                setContentPane(stagePanel);
-                stagePanel.requestFocusInWindow(); // 确保面板获得焦点
+                panelToShow = new StageModePanel(this);
                 break;
             case "Infinite":
-                InfiniteModePanel InfinitePanel = new InfiniteModePanel(mainMenuPanel, this);
-                setContentPane(InfinitePanel);
-                InfinitePanel.requestFocusInWindow(); // 确保面板获得焦点
+                panelToShow = new InfiniteModePanel(mainMenuPanel, this);
                 break;
             case "Upgrade":
-                setContentPane(upgradePanel);
-                upgradePanel.requestFocusInWindow();
-            break;
-
-            case "Menu":
-            /*case "Upgrade":
-                setContentPane(new UpgradePanel(this));
-                break;*/
-            default:
-                setContentPane(mainMenuPanel);
+                panelToShow = upgradePanel;
                 break;
-        }
+            case "Menu":
+            default:
+                panelToShow = mainMenuPanel;
+                break;
+	}
+        setContentPane(panelToShow);
+        panelToShow.requestFocusInWindow();
         revalidate();
         repaint();
     }

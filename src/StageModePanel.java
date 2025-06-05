@@ -25,6 +25,7 @@ public class StageModePanel extends JPanel implements KeyListener {
     private JButton pauseButton;
     private JDialog pauseDialog;
     private Timer gameTimer;
+    private Clip bgmClip;
 
     //暫停按鈕
     private void initPauseButton() {
@@ -37,6 +38,24 @@ public class StageModePanel extends JPanel implements KeyListener {
         revalidate();
         repaint();
     }
+
+    private void resumeGame() {
+        paused = false;
+        left = false;
+        right = false;
+        up = false;
+        down = false;
+        space = false;
+        fireballKey = false;
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+        SwingUtilities.invokeLater(() -> StageModePanel.this.requestFocusInWindow());
+
+        if (gameTimer == null || !gameTimer.isRunning()) {
+            startGameTimer();
+        }
+    }
+
     private void showPauseDialog() {
         paused = true;
         if (gameTimer != null) gameTimer.stop();
@@ -46,20 +65,7 @@ public class StageModePanel extends JPanel implements KeyListener {
     	JButton resumeButton = new JButton("Resume");
     	resumeButton.addActionListener(e -> {
             pauseDialog.dispose();
-            paused = false;
-            left = false;
-            right = false;
-            up = false;
-            down = false;
-            space = false;
-            fireballKey = false;
-            KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
-            SwingUtilities.invokeLater(() -> {
-                StageModePanel.this.requestFocusInWindow();
-            });
-            if (gameTimer == null || !gameTimer.isRunning()) {
-                startGameTimer();
-            }
+            resumeGame();
     	});
 
         JButton mainMenuButton = new JButton("Main Menu");
@@ -68,13 +74,28 @@ public class StageModePanel extends JPanel implements KeyListener {
             returnToMainMenu();
     	});
 
+        pauseDialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                pauseDialog.dispose();
+                resumeGame();
+            }
+        });
     	pauseDialog.add(resumeButton);
     	pauseDialog.add(mainMenuButton);
     	pauseDialog.setSize(200, 100);
     	pauseDialog.setLocationRelativeTo(this);
     	pauseDialog.setVisible(true);
     }
+    private void stopBGM() {
+        if (bgmClip != null && bgmClip.isRunning()) {
+            bgmClip.stop();
+            bgmClip.close();
+        }
+    }
     private void returnToMainMenu() {
+        stopBGM(); // ✅ 停止音樂
+        removeNotify(); // 停止線程
     	SwingUtilities.invokeLater(() -> {
             MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
             frame.showScreen("Menu");
@@ -309,9 +330,9 @@ public class StageModePanel extends JPanel implements KeyListener {
             java.net.URL bgmURL = new File("resources/8hp8q-bq1d0.wav").toURI().toURL();
             if (bgmURL != null) {
                 AudioInputStream ais = AudioSystem.getAudioInputStream(bgmURL);
-                Clip c = AudioSystem.getClip();
-                c.open(ais);
-                c.loop(Clip.LOOP_CONTINUOUSLY);
+                bgmClip = AudioSystem.getClip();
+                bgmClip.open(ais);
+                bgmClip.loop(Clip.LOOP_CONTINUOUSLY);   
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -351,14 +372,19 @@ public class StageModePanel extends JPanel implements KeyListener {
             int x = (getWidth() - textWidth) / 2;
             int y = getHeight() / 2;
             g.drawString(pauseText, x, y);
+            g.setFont(new Font("Arial", Font.BOLD, 14));
         }
         // ── 如果还没进入 Boss，显示“Wave: x/5” 以及本波剩余秒数 ──
         if (!bossActive) {
-            long sinceThisWave = now - waveStartTime;
-            long remainMs = wavePaused
-                    ? pausedWaveRemaining
-                    : Math.max(0, WAVE_INTERVAL_MS - sinceThisWave);
-            double remainSec = remainMs / 1000.0;
+            double remainSec;
+            if (paused) {
+                remainSec = pausedWaveRemaining / 1000.0;
+            } else {
+                long sinceThisWave = now - waveStartTime;
+                long remainMs = Math.max(0, WAVE_INTERVAL_MS - sinceThisWave);
+                remainSec = remainMs / 1000.0;
+                pausedWaveRemaining = remainMs; // 暫停用
+            }
 
             g.drawString("Wave: " + waveNumber + "/" + WAVES_PER_ROUND, 10, 80);
             g.drawString(String.format("Next In: %.1fs", remainSec), 10, 100);

@@ -12,12 +12,111 @@ import javax.sound.sampled.*;
 import java.util.List;
 import java.io.File;
 
-public class StageModePanel extends JPanel implements ActionListener, KeyListener {
-    private Timer timer;
+public class StageModePanel extends JPanel implements KeyListener {
+    private boolean leftPressed = false;
+    private boolean rightPressed = false;
+    private boolean upPressed = false;
+    private boolean downPressed = false;
+    private boolean shootPressed = false;
+    private boolean paused = false;
     private final int PANEL_WIDTH = 400, PANEL_HEIGHT = 800;
     private MainFrame mainFrame;
     private MainMenuPanel mainMenuPanel;
-        
+    private JButton pauseButton;
+    private JDialog pauseDialog;
+    private Timer gameTimer;
+
+    //暫停按鈕
+    private void initPauseButton() {
+    	pauseButton = new JButton("Pause");
+    	int panelWidth = 400; // 假設你的遊戲畫面寬度是 400
+        pauseButton.setBounds(panelWidth - 90, 10, 80, 30);
+    	pauseButton.addActionListener(e -> showPauseDialog());
+    	this.setLayout(null); // 使用絕對定位，或改為合適 Layout
+    	this.add(pauseButton);
+        revalidate();
+        repaint();
+    }
+    private void showPauseDialog() {
+        paused = true;
+        if (gameTimer != null) gameTimer.stop();
+    	pauseDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Paused", true);
+    	pauseDialog.setLayout(new FlowLayout());
+    
+    	JButton resumeButton = new JButton("Resume");
+    	resumeButton.addActionListener(e -> {
+            pauseDialog.dispose();
+            paused = false;
+            left = false;
+            right = false;
+            up = false;
+            down = false;
+            space = false;
+            fireballKey = false;
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().clearGlobalFocusOwner();
+            SwingUtilities.invokeLater(() -> {
+                StageModePanel.this.requestFocusInWindow();
+            });
+            if (gameTimer == null || !gameTimer.isRunning()) {
+                startGameTimer();
+            }
+    	});
+
+        JButton mainMenuButton = new JButton("Main Menu");
+        mainMenuButton.addActionListener(e -> {
+            pauseDialog.dispose();
+            returnToMainMenu();
+    	});
+
+    	pauseDialog.add(resumeButton);
+    	pauseDialog.add(mainMenuButton);
+    	pauseDialog.setSize(200, 100);
+    	pauseDialog.setLocationRelativeTo(this);
+    	pauseDialog.setVisible(true);
+    }
+    private void returnToMainMenu() {
+    	SwingUtilities.invokeLater(() -> {
+            MainFrame frame = (MainFrame) SwingUtilities.getWindowAncestor(this);
+            frame.showScreen("Menu");
+    	});
+    }
+    @Override
+    public void addNotify() {
+    	super.addNotify();
+    	System.out.println("StageModePanel added");
+    	startGameTimer();
+    }
+
+    @Override
+    public void removeNotify() {
+    	super.removeNotify();
+        setFocusable(true);
+        requestFocusInWindow();          // ⬅ 嘗試取得鍵盤焦點
+        startGameTimer();
+    	System.out.println("StageModePanel removed");
+    	stopGameTimer();
+    }
+
+    private void startGameTimer() {
+        if (gameTimer == null) {
+            gameTimer = new Timer(15, e -> {
+                if (!paused) {
+                    updateGame();
+                    repaint();
+                }
+            });
+            gameTimer.start();
+        } else if (!gameTimer.isRunning()) {
+            gameTimer.start();
+        }
+    }
+
+    private void stopGameTimer() {
+    	if (gameTimer != null) {
+            gameTimer.stop();
+        }
+    }
+
     // 玩家屬性
     private int playerX, playerY;
     private static final int PLAYER_WIDTH = 40, PLAYER_HEIGHT = 50;
@@ -179,7 +278,9 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
     private final int WAVES_PER_ROUND = 5;
     private final long WAVE_INTERVAL_MS = 10_000; // 每波間隔 10 秒
     
-    public StageModePanel(MainMenuPanel menu, MainFrame frame) {
+    public StageModePanel(MainFrame frame) {
+	    initPauseButton();
+        startGameTimer();
         setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         setFocusable(true);
         addKeyListener(this);
@@ -204,7 +305,6 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
         waveStartTime = System.currentTimeMillis();
 
         // 背景音樂
-        timer = new Timer(15, this);
         try {
             java.net.URL bgmURL = new File("resources/8hp8q-bq1d0.wav").toURI().toURL();
             if (bgmURL != null) {
@@ -216,7 +316,6 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
         } catch (Exception e) {
             e.printStackTrace();
         }
-        timer.start();
     }
 
     @Override
@@ -239,8 +338,20 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                 10, 40);
         g.drawString(String.format("LV:%d XP:%d/%d", playerLevel, playerXP, xpToNext), 10, 60);
 
-        long now = System.currentTimeMillis();
+        long now = System.currentTimeMillis();  
+        if (paused) {
+            g.setColor(new Color(0, 0, 0, 150)); // 半透明黑幕
+            g.fillRect(0, 0, getWidth(), getHeight());
 
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 36));
+            FontMetrics fm = g.getFontMetrics();
+            String pauseText = "遊戲暫停";
+            int textWidth = fm.stringWidth(pauseText);
+            int x = (getWidth() - textWidth) / 2;
+            int y = getHeight() / 2;
+            g.drawString(pauseText, x, y);
+        }
         // ── 如果还没进入 Boss，显示“Wave: x/5” 以及本波剩余秒数 ──
         if (!bossActive) {
             long sinceThisWave = now - waveStartTime;
@@ -367,9 +478,9 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                     roundCount++;
                     enemies.clear();
                 } else {
-                    timer.stop();
+                    gameTimer.stop();
                     JOptionPane.showMessageDialog(this, "過關成功", "恭喜", JOptionPane.PLAIN_MESSAGE);
-                    System.exit(0);
+                    returnToMainMenu();
                     return;
                 }
             }
@@ -604,14 +715,14 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                             roundCount++;
                             enemies.clear();
                         } else {
-                            timer.stop();
+                            gameTimer.stop();
                             JOptionPane.showMessageDialog(
                                     this,
                                     "過關成功",
                                     "恭喜",
                                     JOptionPane.PLAIN_MESSAGE
                             );
-                            System.exit(0);
+                            returnToMainMenu();
                             return;
                         }
                     }
@@ -702,14 +813,14 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                             roundCount++;
                             enemies.clear();
                         } else {
-                            timer.stop();
+                            gameTimer.stop();
                             JOptionPane.showMessageDialog(
                                     this,
                                     "過關成功",
                                     "恭喜",
                                     JOptionPane.PLAIN_MESSAGE
                             );
-                            System.exit(0);
+                            returnToMainMenu();
                             return;
                         }
                     }
@@ -738,14 +849,14 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                             playerY
                     ));
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Game Over",
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        returnToMainMenu();
                     }
                 }
             }
@@ -768,14 +879,14 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                             playerY
                     ));
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Game Over",
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        returnToMainMenu();
                     }
                 }
             }
@@ -798,14 +909,14 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                             playerY
                     ));
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Game Over",
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        returnToMainMenu();
                     }
                 }
             }
@@ -823,14 +934,14 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                             playerY
                     ));
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Game Over",
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        returnToMainMenu();
                     }
                 }
             }
@@ -853,14 +964,14 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                             playerY
                     ));
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Game Over",
                                 "結束",
                                 JOptionPane.PLAIN_MESSAGE
                         );
-                        System.exit(0);
+                        returnToMainMenu();
                     }
                 }
             }
@@ -880,6 +991,8 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
             leveling = true;
             SwingUtilities.invokeLater(this::showLevelUpDialog);
         }
+        setFocusable(true);
+        requestFocusInWindow();
     }
 
 
@@ -1003,14 +1116,11 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
         space = fireballKey = false;
         leveling = false;
     }
-    
-    @Override public void actionPerformed(ActionEvent e){
-        updateGame(); 
-	repaint();
-    }
 
     @Override 
     public void keyPressed(KeyEvent e){
+        if (paused) return;  // 清楚地避免任何處理
+
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT, KeyEvent.VK_A -> left = true;
             case KeyEvent.VK_RIGHT, KeyEvent.VK_D -> right = true;
@@ -1027,6 +1137,8 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
 
     @Override 
     public void keyReleased(KeyEvent e){
+        if (paused) return;
+
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT, KeyEvent.VK_A -> left = false;
             case KeyEvent.VK_RIGHT, KeyEvent.VK_D -> right = false;
@@ -1240,7 +1352,7 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                     ));
                     it.remove();
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 StageModePanel.this,
                                 "Game Over",
@@ -1315,7 +1427,7 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                                 (int) playerY
                         ));
                         if (playerHealth <= 0) {
-                            timer.stop();
+                            gameTimer.stop();
                             JOptionPane.showMessageDialog(
                                     StageModePanel.this,
                                     "Game Over",
@@ -1338,7 +1450,7 @@ public class StageModePanel extends JPanel implements ActionListener, KeyListene
                                     (int) playerY
                             ));
                             if (playerHealth <= 0) {
-                                timer.stop();
+                                gameTimer.stop();
                                 JOptionPane.showMessageDialog(
                                         StageModePanel.this,
                                         "Game Over",

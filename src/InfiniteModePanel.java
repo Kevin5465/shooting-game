@@ -12,26 +12,20 @@ import javax.sound.sampled.*;
 import java.util.List;
 import java.io.File;
 
-public class InfiniteModePanel extends JPanel implements ActionListener, KeyListener {
-    private Timer timer;
+public class InfiniteModePanel extends JPanel implements KeyListener {
+    private boolean leftPressed = false;
+    private boolean rightPressed = false;
+    private boolean upPressed = false;
+    private boolean downPressed = false;
+    private boolean shootPressed = false;
+    private boolean paused = false;
     private final int PANEL_WIDTH = 400, PANEL_HEIGHT = 800;
     private MainFrame mainFrame;
     private UpgradePanel upgradePanel;
-    // 玩家屬性
-    private int playerX, playerY;
-    private static final int PLAYER_WIDTH = 40, PLAYER_HEIGHT = 50;
-    private double playerMaxHealth = PlayerData.getMaxHP(), playerHealth = playerMaxHealth;
-    private double playerAttack = PlayerData.getAttack(), playerDefense = PlayerData.getDefense(), playerAttackSpeed = PlayerData.getAttackSpeed();
-    private long lastFireTime = 0, lastFireballTime = 0;
-    private final int BASE_FIREBALL_COOLDOWN = 1000;
-    private boolean left, right, up, down, space, fireballKey;
-    private long pauseStartTime = 0;
-    private long pausedRemainingCd = 0;
     private JButton pauseButton;
     private JDialog pauseDialog;
     private Timer gameTimer;
     private Clip bgmClip;
-    private boolean paused = false;
     private double bossHPScale = 1.0;
     private double enemyHPScale = 1.0;
 
@@ -110,6 +104,22 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
             frame.showScreen("Menu");
     	});
     }
+    @Override
+    public void addNotify() {
+    	super.addNotify();
+    	System.out.println("StageModePanel added");
+    	startGameTimer();
+    }
+
+    @Override
+    public void removeNotify() {
+    	super.removeNotify();
+        setFocusable(true);
+        requestFocusInWindow();          // ⬅ 嘗試取得鍵盤焦點
+        startGameTimer();
+    	System.out.println("StageModePanel removed");
+    	stopGameTimer();
+    }
     private void startGameTimer() {
         if (gameTimer == null) {
             gameTimer = new Timer(15, e -> {
@@ -123,7 +133,22 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
             gameTimer.start();
         }
     }
-    
+    private void stopGameTimer() {
+    	if (gameTimer != null) {
+            gameTimer.stop();
+        }
+    }
+    // 玩家屬性
+    private int playerX, playerY;
+    private static final int PLAYER_WIDTH = 40, PLAYER_HEIGHT = 50;
+    private double playerMaxHealth = PlayerData.getMaxHP(), playerHealth = playerMaxHealth;
+    private double playerAttack = PlayerData.getAttack(), playerDefense = PlayerData.getDefense(), playerAttackSpeed = PlayerData.getAttackSpeed();
+    private long lastFireTime = 0, lastFireballTime = 0;
+    private final int BASE_FIREBALL_COOLDOWN = 1000;
+    private boolean left, right, up, down, space, fireballKey;
+    private long pauseStartTime = 0;
+    private long pausedRemainingCd = 0;
+
     // 特殊技能等級 (每個最多3級)
     private int multiShotLevel = 0, chainAttackLevel = 0,
             fireballSkillLevel = 0, diagonalShotLevel = 0, deathChainLevel = 0;
@@ -281,8 +306,10 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
     private int roundCount = 1;               // 第幾輪循環
     private final int WAVES_PER_ROUND = 5;
     private final long WAVE_INTERVAL_MS = 10_000; // 每波間隔 10 秒
-    public InfiniteModePanel(MainMenuPanel menu, MainFrame frame) {
-	setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
+    public InfiniteModePanel(MainFrame frame) {
+        initPauseButton();
+        startGameTimer();
+	    setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         setFocusable(true);
         addKeyListener(this);
         
@@ -308,19 +335,17 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
         waveStartTime = System.currentTimeMillis();
 
         // 背景音樂
-        timer = new Timer(15, this);
         try {
             java.net.URL bgmURL = new File("resources/8hp8q-bq1d0.wav").toURI().toURL();
             if (bgmURL != null) {
                 AudioInputStream ais = AudioSystem.getAudioInputStream(bgmURL);
-                Clip c = AudioSystem.getClip();
-                c.open(ais);
-                c.loop(Clip.LOOP_CONTINUOUSLY);
+                bgmClip = AudioSystem.getClip();
+                bgmClip.open(ais);
+                bgmClip.loop(Clip.LOOP_CONTINUOUSLY); 
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        timer.start();
     }
     
     @Override
@@ -346,6 +371,20 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
         long now = System.currentTimeMillis();
 
         // ── 如果还没进入 Boss，显示“Wave: x/5” 以及本波剩余秒数 ──
+        if (paused) {
+            g.setColor(new Color(0, 0, 0, 150)); // 半透明黑幕
+            g.fillRect(0, 0, getWidth(), getHeight());
+
+            g.setColor(Color.WHITE);
+            g.setFont(new Font("Arial", Font.BOLD, 36));
+            FontMetrics fm = g.getFontMetrics();
+            String pauseText = "遊戲暫停";
+            int textWidth = fm.stringWidth(pauseText);
+            int x = (getWidth() - textWidth) / 2;
+            int y = getHeight() / 2;
+            g.drawString(pauseText, x, y);
+            g.setFont(new Font("Arial", Font.BOLD, 14));
+        }
         if (!bossActive) {
             long sinceThisWave = now - waveStartTime;
             long remainMs = wavePaused
@@ -471,7 +510,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                     roundCount++;
                     enemies.clear();
                 } else {
-                    timer.stop();
+                    gameTimer.stop();
                     JOptionPane.showMessageDialog(this, "過關成功", "恭喜", JOptionPane.PLAIN_MESSAGE);
                     PlayerData.rewardFromScore();
                     PlayerData.resetScore();
@@ -497,8 +536,8 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
             space = false;
             new Thread(() -> {
                 try {
-		    File soundFile = new File("resources/xf9c1-23hih.wav");
-		    AudioInputStream ais = AudioSystem.getAudioInputStream(soundFile);
+		            File soundFile = new File("resources/xf9c1-23hih.wav");
+		            AudioInputStream ais = AudioSystem.getAudioInputStream(soundFile);
                     Clip c = AudioSystem.getClip();
                     c.open(ais);
                     c.start();
@@ -819,7 +858,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                             roundCount++;
                             enemies.clear();
                         } else {
-                            timer.stop();
+                            gameTimer.stop();
                             JOptionPane.showMessageDialog(
                                     this,
                                     "過關成功",
@@ -857,7 +896,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                             playerY
                     ));
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Game Over",
@@ -889,7 +928,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                             playerY
                     ));
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Game Over",
@@ -921,7 +960,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                             playerY
                     ));
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Game Over",
@@ -948,7 +987,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                             playerY
                     ));
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Game Over",
@@ -980,7 +1019,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                             playerY
                     ));
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 this,
                                 "Game Over",
@@ -1131,14 +1170,9 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
         leveling = false;
     }
 
-
-    @Override public void actionPerformed(ActionEvent e){
-        updateGame();
-	repaint();
-    }
-
     @Override 
     public void keyPressed(KeyEvent e){
+        if (paused) return;
         switch(e.getKeyCode()){
             case KeyEvent.VK_LEFT, KeyEvent.VK_A -> left = true;
             case KeyEvent.VK_RIGHT, KeyEvent.VK_D -> right = true;
@@ -1155,6 +1189,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
 
     @Override 
     public void keyReleased(KeyEvent e){
+        if (paused) return;
         switch(e.getKeyCode()){
             case KeyEvent.VK_LEFT, KeyEvent.VK_A   -> left = false;
             case KeyEvent.VK_RIGHT,KeyEvent.VK_D   -> right = false;
@@ -1367,7 +1402,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                     ));
                     it.remove();
                     if (playerHealth <= 0) {
-                        timer.stop();
+                        gameTimer.stop();
                         JOptionPane.showMessageDialog(
                                 InfiniteModePanel.this,
                                 "Game Over",
@@ -1444,7 +1479,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                 (int) playerY
                         ));
                         if (playerHealth <= 0) {
-                            timer.stop();
+                            gameTimer.stop();
                             JOptionPane.showMessageDialog(
                                     InfiniteModePanel.this,
                                     "Game Over",
@@ -1469,7 +1504,7 @@ public class InfiniteModePanel extends JPanel implements ActionListener, KeyList
                                     (int) playerY
                             ));
                             if (playerHealth <= 0) {
-                                timer.stop();
+                                gameTimer.stop();
                                 JOptionPane.showMessageDialog(
                                         InfiniteModePanel.this,
                                         "Game Over",

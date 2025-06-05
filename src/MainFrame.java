@@ -27,7 +27,7 @@ public class MainFrame extends JFrame {
                 panelToShow = new StageModePanel(this);
                 break;
             case "Infinite":
-                panelToShow = new InfiniteModePanel(mainMenuPanel, this);
+                panelToShow = new InfiniteModePanel(this);
                 break;
             case "Upgrade":
                 panelToShow = upgradePanel;

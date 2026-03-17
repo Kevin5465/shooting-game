@@ -1,0 +1,9 @@
+# IDE 設定檔
+.vscode/
+.idea/
+*.iml
+
+# 編譯輸出的檔案
+bin/
+out/
+*.class
